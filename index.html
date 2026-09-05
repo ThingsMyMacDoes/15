@@ -333,19 +333,20 @@
         'pharmacy', 'hairdresser', 'clothing', 'shoes'
       ];
 
-      const amenityFilter = amenityList.map(a => `["amenity"="${a}"]`).join(',');
-      const shopFilter = shopList.map(s => `["shop"="${s}"]`).join(',');
+      const amenityPattern = amenityList.join('|');
+const shopPattern = shopList.join('|');
 
-      const query = `
-        [out:json];
-        (
-          node(around:${SEARCH_RADIUS},${lat},${lng})${amenityFilter};
-          node(around:${SEARCH_RADIUS},${lat},${lng})${shopFilter};
-          way(around:${SEARCH_RADIUS},${lat},${lng})${amenityFilter};
-          way(around:${SEARCH_RADIUS},${lat},${lng})${shopFilter};
-        );
-        out center;
-      `;
+const query = `
+  [out:json];
+  (
+    node(around:${SEARCH_RADIUS},${lat},${lng})["amenity"~"^(${amenityPattern})$"];
+    node(around:${SEARCH_RADIUS},${lat},${lng})["shop"~"^(${shopPattern})$"];
+    way(around:${SEARCH_RADIUS},${lat},${lng})["amenity"~"^(${amenityPattern})$"];
+    way(around:${SEARCH_RADIUS},${lat},${lng})["shop"~"^(${shopPattern})$"];
+  );
+  out center;
+`;
+
 
       try {
         const response = await fetch("https://overpass-api.de/api/interpreter", {
